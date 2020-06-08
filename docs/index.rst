@@ -4,7 +4,6 @@
    :caption: Code Documentation
    :maxdepth: 2
 
-   readme
    capistrano
    mina
 
@@ -12,12 +11,12 @@
     :maxdepth: 2
     :caption: Devops, System
 
-    vagrant
+    docker
     ansible
+    vagrant
     vpc
     elb
     httpaccess
-    docker
 
 .. toctree::
     :maxdepth: 3

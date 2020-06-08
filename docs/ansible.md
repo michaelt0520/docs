@@ -1,4 +1,4 @@
-# Ansible - Playbook
+# Ansible
 
 ![](https://images.viblo.asia/369ed990-2d7c-4a4e-96e9-ae53b62c3612.jpg)
 
