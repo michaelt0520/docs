@@ -4,3 +4,4 @@
 ### 2. Mina deploy
 ## Devops, System
 ### 1. Vagrant
+### 2. Ansible

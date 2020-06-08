@@ -10,10 +10,10 @@
 
 .. toctree::
     :maxdepth: 2
-    :numbered:
     :caption: Devops, System
 
     vagrant
+    ansible
 
 .. toctree::
     :maxdepth: 3
