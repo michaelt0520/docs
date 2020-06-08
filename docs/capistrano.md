@@ -31,7 +31,7 @@ end
 ### Step 2: Config Capfile & deploy.rb staging.rb
 * **Capfile**
 
-```
+```ruby
 require 'capistrano/setup'
 require 'capistrano/deploy'
 
@@ -48,7 +48,7 @@ Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
 
 * **Deploy.rb**
 
-```
+```ruby
 # config valid only for current version of Capistrano
 lock '3.6.1'
 
@@ -221,7 +221,7 @@ sudo nano /etc/nginx/conf.d/default.conf
 
 **Nginx file**
 
-```
+```bash
 upstream app {
    server unix:/home/deploy/nguoimexe/shared/tmp/sockets/puma.sock fail_timeout=0;
 }
@@ -311,7 +311,7 @@ mkdir - p project_app/shared/config
 
 **database.yml**
 
-```
+```ruby
 
 production:
   adapter: postgresql
