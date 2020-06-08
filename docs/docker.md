@@ -111,7 +111,6 @@ CMD
 ....còn nữa
 ```
 
-#### Dockerfile Commands
 ##### FROM
 Dùng để chỉ ra image được build từ đâu (từ image gốc nào)
 
