@@ -15,6 +15,7 @@
     vagrant
     ansible
     vpc
+    elb
 
 .. toctree::
     :maxdepth: 3
