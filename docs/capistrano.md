@@ -1,6 +1,6 @@
 ![](https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSkddLpg0l5CqPr0-SHfF1iWTYU56otjuQKd9aM0C4TmsILnolZ&usqp=CAU)
 
-# Capistrano
+# Capistrano deploy
 [Capistrano](https://capistranorb.com/documentation/getting-started/local-tasks/) | [Github](https://github.com/capistrano/capistrano)
 
 ### Step 1: Add gem && bundle install

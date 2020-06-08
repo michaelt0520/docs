@@ -6,6 +6,7 @@
 
    readme
    capistrano
+   mina
    configuring
    contributing
 
