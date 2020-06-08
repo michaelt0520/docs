@@ -21,7 +21,7 @@
 3. **Inventory** - Khai báo địa chỉ server cần được setup
 4. **Modules** - Những chức năng hỗ trợ cho việc thực thi tasks dễ và đang dạng
 
-## PLAYBOOKS
+### PLAYBOOKS
 
 * Trong playbooks, chúng ta sẽ xác định những gì cần phải làm. Hay nói cách khác là nơi ta sẽ viết kịch bản cho các con server.
 * Trong playbooks sẽ chứa một tập hợn các activities (hoạt động) hay các tasks (nhiệm vụ) sẽ được chạy trên một hay một nhóm servers.
@@ -61,7 +61,7 @@
 ansible-palybook -i hosts my_playbook.yml
 ```
 
-## MODULES
+### MODULES
 * Ansible cung cấp rất nhiều module
 
 1. **System**: Bao gồm các module như User, Group, Hostname, Systemd, Service
@@ -72,7 +72,174 @@ ansible-palybook -i hosts my_playbook.yml
 
 Và còn hàng trăm module khác đã được ansible cung cấp sẵn.
 
-## INVENTORY
+#### [1. File](https://docs.ansible.com/ansible/latest/modules/file_module.html)
+
+* Create Folder/File
+
+```
+- name: create folder
+  file:
+  	path: /home/app/name-folder
+  	state: dicrectory
+
+- name: create file
+  file: 
+  	path: /home/app/file.rb
+  	state: touch
+```
+
+* Link Folder/File - change ownership
+
+```
+- name: Create a symbolic link
+  file:
+    src: /file/to/link/to
+    dest: /path/to/symlink
+    state: link
+    
+- name: Change permisstion ownership
+  file:
+  	path: /home/app/folder
+  	owner: app
+  	group: app
+```
+
+#### [2. Copy](https://docs.ansible.com/ansible/latest/modules/copy_module.html)
+
+```
+- name: Copy file with owner and permissions
+  copy:
+    src: /home/app/foo.conf
+    dest: /etc/foo.conf
+    owner: app
+    group: app
+    mode: '0644'
+```
+
+#### [3. Template](https://docs.ansible.com/ansible/latest/modules/template_module.html)
+
+```
+- name: Template a file to /etc/files.conf
+  template:
+    src: /mytemplates/foo.j2
+    dest: /etc/nginx/conf.d/default.conf
+    owner: app
+    group: app
+    mode: '0644'
+```
+
+#### [4. APT - Manages apt-packages](https://docs.ansible.com/ansible/latest/modules/apt_module.html)
+
+```
+- name: Install nginx  (state=present is optional)
+  apt:
+    name: nginx
+    state: present
+    
+- name: Uninstall nginx
+  apt:
+    name: nginx
+    state: absent
+```
+
+#### [5. yum – Manages packages with the yum package manager](https://docs.ansible.com/ansible/latest/modules/yum_module.html)
+
+```
+- name: install the latest version of Apache
+  yum:
+    name: httpd
+    state: latest
+  
+- name: ensure a list of packages installed
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - httpd
+    - httpd-tools
+
+- name: remove the Apache package
+  yum:
+    name: httpd
+    state: absent
+  
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+```
+
+#### [6. Git](https://docs.ansible.com/ansible/latest/modules/git_module.html)
+
+```
+- name: git clone https://abc.com
+  git: repo=https://abc.com dest=/home/app/folder
+```
+
+#### [7. Lineinfile](https://docs.ansible.com/ansible/latest/modules/lineinfile_module.html)
+
+```
+- name: Add a line to a file if the file does not exist, without passing regexp
+  lineinfile:
+    path: /home/app/etc/hosts
+    line: 127.0.0.0 development.site
+    create: yes
+```
+
+#### [8. blockinfile – Insert/update/remove a text block surrounded by marker lines](https://docs.ansible.com/ansible/latest/modules/blockinfile_module.html)
+
+```
+- name: Insert/Update eth0 configuration stanza in /etc/network/interfaces
+        (it might be better to copy files into /etc/network/interfaces.d/)
+  blockinfile:
+    path: /etc/network/interfaces
+    block: |
+      iface eth0 inet static
+          address 192.0.2.23
+          netmask 255.255.255.0
+```
+
+#### [9. Shell](https://docs.ansible.com/ansible/latest/modules/shell_module.html)
+
+```
+- name: Run a command that uses non-posix shell-isms (in this example /bin/sh doesn't handle redirection and wildcards together but bash does)
+  shell: cat < /tmp/*txt
+  args:
+    executable: /bin/bash
+```
+
+#### [10. Command](https://docs.ansible.com/ansible/latest/modules/command_module.html)
+
+```
+- name: return motd to registered var
+  command: cat /etc/motd
+  register: mymotd
+```
+
+#### [11. stat – Retrieve file or file system status](https://docs.ansible.com/ansible/latest/modules/stat_module.html)
+
+```
+- name: Ansible check versions {{ ruby_version }} exists.
+  stat:
+    path: "{{ rbenv_root }}/versions/{{ ruby_version }}"
+  register: dir_version
+
+- name: Install ruby {{ ruby_version }}
+  command: sudo -iu {{ user }} rbenv install {{ ruby_version }}
+  when: dir_version.stat.exists == False 
+  
+================================================================================ 
+ 
+- stat:
+    path: /path/to/something
+  register: sym
+
+- debug:
+    msg: "islnk isn't defined (path doesn't exist)"
+  when: sym.stat.islnk is not defined
+```
+
+### INVENTORY
 Đây là nơi sẽ chứa tên các con server hay địa chỉ ip mà bạn muốn thực thi.
 
 ```
@@ -114,312 +281,7 @@ sql_db1 ansible_host=sql01.xyz.com ansible_connection=ssh ansible_user=root ansi
 sql_db2 ansible_host=sql02.xyz.com ansible_connection=ssh ansible_user=root ansible_ssh_pass=Lin$Pass
 ```
 
-## VARIABLES
-* Biến được sử dụng để lưu trữ các giá trị và có thể thay đổi giá trị được.
-
-```
--
-  name: Print car's information
-  hosts: localhost
-  vars:
-    car_model: "BMW M3"
-    country_name: USA
-    title: "Systems Engineer"
-  tasks:
-    - name: Print my car model
-      command: echo "My car's model is {{ car_model }}"
-
-    - name: Print my country
-      command: echo "I live in the {‌{ country_name }}"
-```
-
-Để khai báo biến, chúng ta sẽ sử dụng thuộc tính vars mà ansible đã cung cấp.
-**car_model** sẽ là key, **"BMW M3"** sẽ là value. Bên dưới để sử dụng biến **car_model** ta sử dụng cặp dấu ngoặc nhọn và tên biến **{{ car_model }}**
-
-## CONDITIONS
-* Ansible cũng cho phép bạn điều hướng lệnh chạy hay giới hạn phạm vi để run câu lệnh nào đó.
-
-```
-#Simple playbook.yml
--
-  name: Toi da tot nghiep chưa
-  hosts: localhost
-  vars:
-    age: 25
-  tasks:
-    - name: 'bfd'
-      command: echo "Toi chua tot nghiep"
-      when: age < 22          
-    - name: 'abc                    
-      command: echo "Toi da tot nghiep"                     
-      when: age >= 22
-```
-
-## REGISTER
-*  Register giúp nhận kết quả trả về từ một câu lệnh. Sau đó ta có thể dùng kết quá trả về đó cho những câu lệnh chạy sau đó.
-
-Ví dụ ta có bài toán như sau: kiểm tra trạng thái của service httpd, nếu start thất bại thì gửi mail thông báo cho admin.
-
-```
-#Sample ansible playbook.yml
--
-  name: Check status of service and email if its down
-  hosts: localhost
-  tasks:
-    - command: service httpd status
-      register: command_output
-
-    - mail:
-        to: Admins 
-        subject: Service Alert
-        body: "Service is down"
-      when: command_output.stdout.find("down") != -1
-```
-
-Nhờ vào thuộc tính register, kết quả trả về sẽ được chứa vào biến command_output. Từ đó ta sử dụng tiếp các thuộc tính của biến command_output là stdout.find để tìm chữ "down" có xuất hiện trong nội dung trả về không. Nếu không tìm thấy thì kết quả sẽ là -1.
-
-## LOOPS
-* Nhưng nếu server yêu cầu cài thêm nhiều gói service khác như mysql, php thì sao nhĩ. Như bình thường chúng ta sẽ viết như sau:
-
-```
-# Simple Ansible Playbook1.yml
--
-  name: Install packages
-  hosts: localhost
-  tasks:
-    - name: Install httpd service
-      yum:
-        name: httpd
-    - name: Install mysql service
-      yum:
-        name: mysql
-    - name: Install php service
-      yum:
-        name: php
-```
-
-Ở đây mới ví dụ 3 service cần cài mà phải viết lập lại các thuộc tính name, module yum đến 3 lần. Nếu server cần cài lên đến 100 gói service thì việc ngồi copy/paste cũng trở nên vấn đề đấy. Thay vào đó, chúng ta sẽ sử dụng chức năng loops mà ansible đã cung cấp để để viết.
-
-```#Simple Ansible Playbook1.yml
--
-  name: Install packages
-  hosts: localhost
-  tasks:
-    - name: Install all service
-      yum: name="{{ item }}" state=present
-      with_items:
-        - httpd
-        - mysql
-        - php
-```
- 
-**with_items** là một lệnh lặp, thực thi cùng một tác vụ nhiều lần. Mỗi lần chạy, nó lưu giá trị của từng thành phần trong biến item.
-
-## ROLES
-Nếu bạn có nhiều server hay nhiều group server và mỗi server thực thiện những tasks riêng biệt. Và khi này nếu viết tất cả vào cùng một file playbook thì khá là xấu code và khó để quản lý. Ansible đã cung cấp sẵn chức năng roles, về đơn giản nó sẽ giúp bạn phân chia khu vực với nhiệm vụ riêng biệt.
-
-```
-#Simple Ansible setup_application.yml
--
-  name: Set firewall configurations
-  hosts: web
-  vars:
-    http_port: 8081
-    snmp_port: 160-161
-    inter_ip_range: 192.0.2.0
-    
-  tasks:
-    - firewalld:
-        service: https
-        permanent: true
-        state: enabled
-    - firewalld:
-        port: "{{ http_port }}"/tcp
-        permanent: true
-        state: disabled
-    - firewalld:
-        port: "{{ snmp_port }}"/udp
-        permanent: true
-        state: disabled
-    - firewalld:
-        source: "{{ inter_ip_range }}"/24
-        zone: internal
-        state: enabled
-```
-
-Mục tiêu của file playbook setup_application.yml này là cấu hình tường lửa cho group server về web. Bây giờ chúng ta sẽ cắt nhỏ file playbook này ra thành những file có chức năng riêng biệt như file chỉ chưa định nghĩa biến, hay file chứa định nghĩa tasks. Trước khi cắt file playbook nhỏ gọn lại, ta cần tạo cấu trúc thư mục như sau để ansible nhận biết được các thành phần ta đã khai báo.
-
-![](https://drive.google.com/uc?id=1ps-Vm9BkfdlA_2Thm7TW9nuEDSJPJXx4&export=download)
-
-## Modules
-### [1. File](https://docs.ansible.com/ansible/latest/modules/file_module.html)
-
-* Create Folder/File
-
-```
-- name: create folder
-  file:
-  	path: /home/app/name-folder
-  	state: dicrectory
-
-- name: create file
-  file: 
-  	path: /home/app/file.rb
-  	state: touch
-```
-
-* Link Folder/File - change ownership
-
-```
-- name: Create a symbolic link
-  file:
-    src: /file/to/link/to
-    dest: /path/to/symlink
-    state: link
-    
-- name: Change permisstion ownership
-  file:
-  	path: /home/app/folder
-  	owner: app
-  	group: app
-```
-
-### [2. Copy](https://docs.ansible.com/ansible/latest/modules/copy_module.html)
-
-```
-- name: Copy file with owner and permissions
-  copy:
-    src: /home/app/foo.conf
-    dest: /etc/foo.conf
-    owner: app
-    group: app
-    mode: '0644'
-```
-
-### [3. Template](https://docs.ansible.com/ansible/latest/modules/template_module.html)
-
-```
-- name: Template a file to /etc/files.conf
-  template:
-    src: /mytemplates/foo.j2
-    dest: /etc/nginx/conf.d/default.conf
-    owner: app
-    group: app
-    mode: '0644'
-```
-
-### [4. APT - Manages apt-packages](https://docs.ansible.com/ansible/latest/modules/apt_module.html)
-
-```
-- name: Install nginx  (state=present is optional)
-  apt:
-    name: nginx
-    state: present
-    
-- name: Uninstall nginx
-  apt:
-    name: nginx
-    state: absent
-```
-
-### [5. yum – Manages packages with the yum package manager](https://docs.ansible.com/ansible/latest/modules/yum_module.html)
-
-```
-- name: install the latest version of Apache
-  yum:
-    name: httpd
-    state: latest
-  
-- name: ensure a list of packages installed
-  yum:
-    name: "{{ packages }}"
-  vars:
-    packages:
-    - httpd
-    - httpd-tools
-
-- name: remove the Apache package
-  yum:
-    name: httpd
-    state: absent
-  
-- name: upgrade all packages
-  yum:
-    name: '*'
-    state: latest
-```
-
-### [6. Git](https://docs.ansible.com/ansible/latest/modules/git_module.html)
-
-```
-- name: git clone https://abc.com
-  git: repo=https://abc.com dest=/home/app/folder
-```
-
-### [7. Lineinfile](https://docs.ansible.com/ansible/latest/modules/lineinfile_module.html)
-
-```
-- name: Add a line to a file if the file does not exist, without passing regexp
-  lineinfile:
-    path: /home/app/etc/hosts
-    line: 127.0.0.0 development.site
-    create: yes
-```
-
-### [8. blockinfile – Insert/update/remove a text block surrounded by marker lines](https://docs.ansible.com/ansible/latest/modules/blockinfile_module.html)
-
-```
-- name: Insert/Update eth0 configuration stanza in /etc/network/interfaces
-        (it might be better to copy files into /etc/network/interfaces.d/)
-  blockinfile:
-    path: /etc/network/interfaces
-    block: |
-      iface eth0 inet static
-          address 192.0.2.23
-          netmask 255.255.255.0
-```
-
-### [9. Shell](https://docs.ansible.com/ansible/latest/modules/shell_module.html)
-
-```
-- name: Run a command that uses non-posix shell-isms (in this example /bin/sh doesn't handle redirection and wildcards together but bash does)
-  shell: cat < /tmp/*txt
-  args:
-    executable: /bin/bash
-```
-
-### [10. Command](https://docs.ansible.com/ansible/latest/modules/command_module.html)
-
-```
-- name: return motd to registered var
-  command: cat /etc/motd
-  register: mymotd
-```
-
-### [11. stat – Retrieve file or file system status](https://docs.ansible.com/ansible/latest/modules/stat_module.html)
-
-```
-- name: Ansible check versions {{ ruby_version }} exists.
-  stat:
-    path: "{{ rbenv_root }}/versions/{{ ruby_version }}"
-  register: dir_version
-
-- name: Install ruby {{ ruby_version }}
-  command: sudo -iu {{ user }} rbenv install {{ ruby_version }}
-  when: dir_version.stat.exists == False 
-  
-================================================================================ 
- 
-- stat:
-    path: /path/to/something
-  register: sym
-
-- debug:
-    msg: "islnk isn't defined (path doesn't exist)"
-  when: sym.stat.islnk is not defined
-```
-
-### [12. How to set and use sudo password for Ansible Vault](https://www.cyberciti.biz/faq/how-to-set-and-use-sudo-password-for-ansible-vault/)
+#### [Set and use sudo password for Ansible Vault](https://www.cyberciti.biz/faq/how-to-set-and-use-sudo-password-for-ansible-vault/)
 
 * First update your inventory file as follows:
 
@@ -472,7 +334,146 @@ ansible-vault edit passwd.yml
 ansible-vault rekey passwd.yml
 ```
 
-### Summary
+## Syntax
+### VARIABLES
+* Biến được sử dụng để lưu trữ các giá trị và có thể thay đổi giá trị được.
+
+```
+-
+  name: Print car's information
+  hosts: localhost
+  vars:
+    car_model: "BMW M3"
+    country_name: USA
+    title: "Systems Engineer"
+  tasks:
+    - name: Print my car model
+      command: echo "My car's model is {{ car_model }}"
+
+    - name: Print my country
+      command: echo "I live in the {‌{ country_name }}"
+```
+
+Để khai báo biến, chúng ta sẽ sử dụng thuộc tính vars mà ansible đã cung cấp.
+**car_model** sẽ là key, **"BMW M3"** sẽ là value. Bên dưới để sử dụng biến **car_model** ta sử dụng cặp dấu ngoặc nhọn và tên biến **{{ car_model }}**
+
+### CONDITIONS
+* Ansible cũng cho phép bạn điều hướng lệnh chạy hay giới hạn phạm vi để run câu lệnh nào đó.
+
+```
+#Simple playbook.yml
+-
+  name: Toi da tot nghiep chưa
+  hosts: localhost
+  vars:
+    age: 25
+  tasks:
+    - name: 'bfd'
+      command: echo "Toi chua tot nghiep"
+      when: age < 22          
+    - name: 'abc                    
+      command: echo "Toi da tot nghiep"                     
+      when: age >= 22
+```
+
+### REGISTER
+*  Register giúp nhận kết quả trả về từ một câu lệnh. Sau đó ta có thể dùng kết quá trả về đó cho những câu lệnh chạy sau đó.
+
+Ví dụ ta có bài toán như sau: kiểm tra trạng thái của service httpd, nếu start thất bại thì gửi mail thông báo cho admin.
+
+```
+#Sample ansible playbook.yml
+-
+  name: Check status of service and email if its down
+  hosts: localhost
+  tasks:
+    - command: service httpd status
+      register: command_output
+
+    - mail:
+        to: Admins 
+        subject: Service Alert
+        body: "Service is down"
+      when: command_output.stdout.find("down") != -1
+```
+
+Nhờ vào thuộc tính register, kết quả trả về sẽ được chứa vào biến command_output. Từ đó ta sử dụng tiếp các thuộc tính của biến command_output là stdout.find để tìm chữ "down" có xuất hiện trong nội dung trả về không. Nếu không tìm thấy thì kết quả sẽ là -1.
+
+### LOOPS
+* Nhưng nếu server yêu cầu cài thêm nhiều gói service khác như mysql, php thì sao nhĩ. Như bình thường chúng ta sẽ viết như sau:
+
+```
+# Simple Ansible Playbook1.yml
+-
+  name: Install packages
+  hosts: localhost
+  tasks:
+    - name: Install httpd service
+      yum:
+        name: httpd
+    - name: Install mysql service
+      yum:
+        name: mysql
+    - name: Install php service
+      yum:
+        name: php
+```
+
+Ở đây mới ví dụ 3 service cần cài mà phải viết lập lại các thuộc tính name, module yum đến 3 lần. Nếu server cần cài lên đến 100 gói service thì việc ngồi copy/paste cũng trở nên vấn đề đấy. Thay vào đó, chúng ta sẽ sử dụng chức năng loops mà ansible đã cung cấp để để viết.
+
+```#Simple Ansible Playbook1.yml
+-
+  name: Install packages
+  hosts: localhost
+  tasks:
+    - name: Install all service
+      yum: name="{{ item }}" state=present
+      with_items:
+        - httpd
+        - mysql
+        - php
+```
+ 
+**with_items** là một lệnh lặp, thực thi cùng một tác vụ nhiều lần. Mỗi lần chạy, nó lưu giá trị của từng thành phần trong biến item.
+
+### ROLES
+Nếu bạn có nhiều server hay nhiều group server và mỗi server thực thiện những tasks riêng biệt. Và khi này nếu viết tất cả vào cùng một file playbook thì khá là xấu code và khó để quản lý. Ansible đã cung cấp sẵn chức năng roles, về đơn giản nó sẽ giúp bạn phân chia khu vực với nhiệm vụ riêng biệt.
+
+```
+#Simple Ansible setup_application.yml
+-
+  name: Set firewall configurations
+  hosts: web
+  vars:
+    http_port: 8081
+    snmp_port: 160-161
+    inter_ip_range: 192.0.2.0
+    
+  tasks:
+    - firewalld:
+        service: https
+        permanent: true
+        state: enabled
+    - firewalld:
+        port: "{{ http_port }}"/tcp
+        permanent: true
+        state: disabled
+    - firewalld:
+        port: "{{ snmp_port }}"/udp
+        permanent: true
+        state: disabled
+    - firewalld:
+        source: "{{ inter_ip_range }}"/24
+        zone: internal
+        state: enabled
+```
+
+Mục tiêu của file playbook setup_application.yml này là cấu hình tường lửa cho group server về web. Bây giờ chúng ta sẽ cắt nhỏ file playbook này ra thành những file có chức năng riêng biệt như file chỉ chưa định nghĩa biến, hay file chứa định nghĩa tasks. Trước khi cắt file playbook nhỏ gọn lại, ta cần tạo cấu trúc thư mục như sau để ansible nhận biết được các thành phần ta đã khai báo.
+
+![](https://drive.google.com/uc?id=1ps-Vm9BkfdlA_2Thm7TW9nuEDSJPJXx4&export=download)
+
+
+## Summary
 In short use following options for the ansible-playbook command with vault or without vault file:
 
 * `-i inventory` : Set path to your inventory file.
@@ -534,7 +535,7 @@ Alternative Directory Layout
 
 ## NOTE
 
-###4.1.1. Inventory Parameters
+### Inventory Parameters
 - Là các tùy chọn đi kèm với các server, được cấu hình trong file inventory: `/etc/ansible/hosts`
 
 - Note: Ansible 2.0 has deprecated the “ssh” from:
@@ -563,9 +564,9 @@ Alternative Directory Layout
 |ansible_*_interpreter|Works for anything such as ruby or perl and works just like ansible_python_interpreter. This replaces shebang of modules which will run on that host.|
 |ansible_shell_executable|This sets the shell the ansible controller will use on the target machine, overrides executable in ansible.cfg which defaults to /bin/sh. You should really only change it if is not possible to use /bin/sh (i.e. /bin/sh is not installed on the target machine or cannot be run from sudo.).|
 
-###4.1.2 Iventory Dynamic
+### Iventory Dynamic
 
-##4.2 `ansible.cfg`
+## 4.2 `ansible.cfg`
 
 ansible.cfg in the current working directory, .ansible.cfg in the home directory or /etc/ansible/ansible.cfg, whichever it finds first
 - Nội dung mặc định của file ansible.cfg: https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg
