@@ -12,10 +12,15 @@
    - **Khả năng mở rộng**: Dễ dàng tăng và phân tán tự động các container
    - **Phân tầng dịch vụ**: Mỗi dịch vụ khi deploy sẽ được phân tầng, nằm trên các dịch vụ đang có sẵn. Như vậy sẽ không làm ảnh hưởng tới dịch vụ đang chạy.
 
-### Khái niệm containers và images
-- Một container được khởi chạy từ image. Như vậy, image là một gói thực thi chứa bên trong là tất cả những gì cần thiết, liên quan để chạy ứng dụng như mã nguồn, các thư viện, runtime, các biến môi trường và các file cấu hình liên quan.
-- Một container là một instance đang chạy được khởi tạo từ image.
+### Docker container
+Là 1 máy ảo được cấu thành từ 1 image. Có thể run, remove thông qua remote client
+### Docker Image
+Là 1 template tạo ra các container, Nó có thể gói các cài đặt môi trường, Thành 1 cụm duy nhất. đó là image
+### Life circle
+![](https://miro.medium.com/max/2612/1*UbAOuq0K1oXxPOgigV9L9A.png)
 
+### Docker engine
+Quản lý việc tạo image. chạy container, dùng image có sẵn hay tải về, Kết nối container, thêm sữa xoá image và container
 ### So sánh giữa VM với container
 - Container chạy trực tiếp trên môi trường máy chủ như một tiến trình và chia sẻ phần kernel bên dưới dùng chung với máy chủ chứa nó
 - VM tạo ra một môi trường giả lập hoàn toàn tách biệt như 1 máy hoàn chỉnh thông qua việc phân bổ tài nguyên của máy chủ, do đó sẽ tốn tài nguyên nhiều hơn cho hệ điều hành của máy ảo
@@ -35,60 +40,52 @@ Docker bao gồm:
 ### 2.1 Docker Client
 > Docker client dùng để tương tác giữa người dùng và Docker Daemon, Daemon sẽ biên dịch và thực thi các câu lệnh đã tương tác qua Docker client.
 
-**1 Chạy một container từ Image**
+**Tập hợp các lệnh sử dụng trong Docker**
 
-`docker run -i -t --name web1 ubuntu`
+##### Pull một image từ Docker Hub
+`docker pull {image_name}`
 
-- Khi chạy **docker pull**, mặc định sẽ tìm trên localhost xem có image nào trùng với yêu cầu trong câu lệnh hay không. Nếu image không có sẵn trên localhost, Docker sẽ tìm kiếm và tải về (pull) từ Registry mặc định.
-
-  - **-i**: Vào chế độ tương tác trực tiếp với Container
-  - **-t**: Hiển thị tty
-  - **--name**: Đặt tên cho container. Mặc định, nếu không đặt thì sẽ có tên ngẫu nhiên.
-
-**2 Khởi động container ở chế độ chạy nền**
-
-`docker run -d --name web1 ubuntu`
-
-**3 Liệt kê các container**
-
-`docker ps -a`
-
-  - **-a hoặc --all**: Hiển thị toàn bộ số container có trên hệ thống
-  - **CONTAINER ID**: ID của container
-  - **IMAGE**: Tên của Image khởi tạo
-  - **COMMAND**: Câu lệnh chính khi khởi động của container/image
-  - **CREATE**: Thời gian container được tạo
-  - **STATUS**: Trạng thái của container
-  - **PORT**: Cổng của container được ánh xạ với host (HOST:CONTAINER)
-  - **NAMES**: Tên của container
-
-**4 Liệt kê các image**
-
+#####Liệt kê các images hiện có
 `docker images`
+#####Xóa một image
+`docker rmi {image_id/name}`
+#####Liệt kê các container đang chạy
+`docker ps`
 
-**5 Dừng hoạt động của container**
+`docker ps -a #Liệt kê các container đã tắt`
+#####Xóa một container
+`docker rm -f {container_id/name}`
+#####Đổi tên một container
+`docker rename {old_container_name} {new_container_name}`
+#####Khởi động một container
+`docker start {new_container_name}`
 
-`docker stop web1`
+`docker exec -it {new_container_name} /bin/bash`
+#####Tạo mới một container, đồng thời khởi động với tùy chọn cổng và volume
+```
+docker run --name {container_name} -p {host_port}:{container_port} -v {/host_path}:{/container_path} -it {image_name} /bin/bash
+```
+#####Xem các thay đổi trên container
+`docker diff {container_name}`
+#####Commit các thay đổi trên container và image
+`docker commit -m "message" {container_name} {image_name}`
+#####Save image thành file .tar
+`docker save {image_name} > {/host_path/new_image.tar}`
+#####Tạo một image mới từ file .tar
+`cat musashi.tar | docker import - {new_image_name}:latest`
+#####Xem lịch sử các commit trên image
+`docker history {image_name}`
+#####Khôi phục lại images từ IMAGE_ID
+`docker tag {iamge_id} {image_new_name}:{tag}`
+#####Build một image từ container
+`docker build -t {container_name} .`
 
-**6 Khởi động của container**
+Dấu . ở đây ám chỉ Dockerfile đang nằm trong thư mục hiện tại.
 
-Có thể thêm -i để có thể tương tác trực tiếp với container.
-
-`docker start web1`
-
-**7 Tương tác với Container đang hoạt động**
-
-`docker attach web1`
-
-Hoặc tương tác sử dụng môi trường **/bin/bash**
-
-`docker exec -it web1 /bin/bash`
-
-**8 Xóa container**
-
-Container chỉ bị xóa khi ở trạng thái dừng hoạt động.
-
-`docker rm web1`
+#####Copy file từ host vào container
+`docker cp foo.txt mycontainer:/foo.txt`
+#####Copy file từ container vào host
+`docker cp mycontainer:/foo.txt foo.txt`
 
 ### 2.2 Docker Hub (Registry)
 Docker Hub hay thường được gọi là Registry, nơi lưu trữ các image được cộng đồng hoặc các nhà phát triển đóng góp và cung cấp miễn phí, chúng ta có thể tìm các bản images tại đây. Điều này vô cùng tiện lợi, chúng ta chỉ cần pull (tải xuống) các image phục vụ cho nhu cầu ở mọi lúc mọi nơi
