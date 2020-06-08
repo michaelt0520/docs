@@ -14,6 +14,7 @@
 
     vagrant
     ansible
+    vpc
 
 .. toctree::
     :maxdepth: 3
