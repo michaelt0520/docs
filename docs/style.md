@@ -4524,7 +4524,7 @@ and has good Emacs integration.
 [partially based](http://confluence.jetbrains.com/display/RUBYDEV/RubyMine+Inspections)
 on this guide.
 
-# Contributing
+## Contributing
 
 The guide is still a work in progress&mdash;some rules are lacking examples,
 some rules don't have examples that illustrate them clearly enough. Improving
