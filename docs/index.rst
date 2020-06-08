@@ -4,6 +4,7 @@
    :caption: Theme Documentation
    :maxdepth: 2
 
+   readme
    installing
    configuring
    contributing
