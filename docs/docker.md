@@ -21,6 +21,8 @@ Là 1 template tạo ra các container, Nó có thể gói các cài đặt môi
 
 ### Docker engine
 Quản lý việc tạo image. chạy container, dùng image có sẵn hay tải về, Kết nối container, thêm sữa xoá image và container
+### Docker network
+
 ### Docker volume
 - Volume trong Docker được dùng để chia sẻ dữ liệu cho container. 
 - Để sử dụng volume trong docker dùng cờ hiệu (flag) -v trong lệnh docker run.
@@ -96,6 +98,148 @@ docker run --rm --volumes-from data-container -v $(pwd):/backup ubuntu bash -c "
 - Đường dẫn trong cờ hiệu -v phải là đường dẫn tuyệt đối, thường dùng $(pwd)/ten_duong_dan để chỉ đúng đường dẫn.
 - Có thể chỉ định việc mount giữa thư mục trên host và thư mục trên container ở các chế độ read-wirte hoặc read-only, mặc định là read-write.
 - Để chia sẻ volume dùng tùy chọn --volumes-from
+
+### Dockerfile
+- Dockerfile là một tập tin dạng text chứa một chuỗi các câu lệnh, chỉ thị để tạo nên một image. Dockerfile bao gồm các câu lệnh liên tiếp thực hiện tự động dựa trên một image có sẵn để tạo ra một image mới
+
+- Trong Dockerfile có các câu lệnh chính sau:
+
+```
+FROM
+RUN
+CMD
+....còn nữa
+```
+
+#### Dockerfile Commands
+##### FROM
+Dùng để chỉ ra image được build từ đâu (từ image gốc nào)
+
+```
+FROM ubuntu
+hoặc có thể chỉ rõ tag của image gốc
+FROM ubuntu14.04:lastest
+```
+
+##### RUN
+Dùng để chạy một lệnh nào đó khi build image, ví dụ về một Dockerfile
+
+```
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install curl -y
+```
+
+##### CMD
+Lệnh CMD dùng để truyền một lệnh của Linux mỗi khi thực hiện khởi tạo một container từ image (image này được build từ Dockerfile)
+
+```
+#Cách 1
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install curl -y
+CMD ["curl", "ipinfo.io"]
+```
+
+```
+#Cách 2
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install wget -y
+CMD curl ifconfig.io
+```
+
+##### LABEL
+`LABEL <key>=<value> <key>=<value> <key>=<value> ...`
+
+Chỉ thị LABEL dùng để add các metadata vào image.
+
+```
+LABEL "com.example.vendor"="ACME Incorporated"
+LABEL com.example.label-with-value="foo"
+LABEL version="1.0"
+LABEL description="This text illustrates \
+that label-values can span multiple lines."
+```
+
+##### MAINTAINER
+`MAINTAINER <name>`
+
+Dùng để đặt tên cho tác giả
+
+##### EXPOSE
+`EXPOSE <port> [<port>...]`
+
+Lệnh EXPOSE thông báo cho Docker rằng image sẽ lắng nghe trên các cổng được chỉ định khi chạy. Lưu ý là cái này chỉ để khai báo, chứ ko có chức năng nat port từ máy host vào container. Muốn nat port, thì phải sử dụng cờ -p (nat một vài port) hoặc -P (nat tất cả các port được khai báo trong EXPOSE) trong quá trình khởi tạo contrainer.
+
+##### ENV
+```
+ENV <key> <value>
+ENV <key>=<value> ...
+```
+
+Khai báo cáo biến giá trị môi trường. Khi run container từ image, các biến môi trường này vẫn có hiệu lực.
+
+##### ADD
+```
+ADD has two forms:
+ADD <src>... <dest>
+ADD ["<src>",... "<dest>"] (this form is required for paths containing whitespace)
+```
+
+- Chỉ thị ADD copy file, thư mục, remote files URL (src) và thêm chúng vào filesystem của image (dest)
+- src: có thể khai báo nhiều file, thư mục, có thể sử dụng các ký hiệu như *,?,...
+- dest: phải là đường dẫn tuyệt đối hoặc có quan hệ với chỉ thị WORKDIR
+
+##### COPY
+```
+COPY <src>... <dest>
+COPY ["<src>",... "<dest>"] (this form is required for paths containing whitespace)
+```
+
+Chỉ thị COPY, copy file, thư mục (src) và thêm chúng vào filesystem của container (dest).
+
+##### ENTRYPOINT
+```
+ENTRYPOINT ["executable", "param1", "param2"] (exec form, preferred)
+ENTRYPOINT command param1 param2 (shell form)
+```
+
+Hai cái CMD và ENTRYPOINT có tác dụng tương tự nhau. Nếu một Dockerfile có cả CMD và ENTRYPOINT thì CMD sẽ thành param cho script ENTRYPOINT. Lý do người ta dùng ENTRYPOINT nhằm chuẩn bị các điều kiện setup như tạo user, mkdir, change owner... cần thiết để chạy service trong container.
+
+##### VOLUME
+`VOLUME ["/data"]`
+
+mount thư mục từ máy host và container. Tương tự option -v khi tạo container.
+Thư mục chưa volumes là /var/lib/docker/volumes/. Ứng với mỗi container sẽ có các thư mục con nằm trong thư mục này. Tìm thư mục chưa Volumes của container sad_euclid:
+
+##### USER
+
+`USER daemon`
+
+Set username hoặc UID để chạy các lệnh RUN, CMD, ENTRYPOINT trong dockerfiles.
+
+##### WORKDIR
+`WORKDIR /path/to/workdir`
+
+Chỉ thị WORKDIR dùng để đặt thư mục đang làm việc cho các chỉ thị khác như: RUN, CMD, ENTRYPOINT, COPY, ADD,...
+
+##### ARG
+`ARG <name>[=<default value>]`
+
+Chỉ thị ARG dùng để định nghĩa các giá trị của biến được dùng trong quá trình build image (lệnh docker build --build-arg =).
+biến ARG sẽ không bền vững như khi sử dụng ENV.
+
+##### STOPSIGNAL
+`STOPSIGNAL signal`
+
+Gửi tín hiệu cho container tắt đúng cách
+
+##### SHELL
+`SHELL ["executable", "parameters"]`
+
+- Chỉ thị Shell cho phép các shell form khác có thể ghi đè shell mặc định.
+- Mặc định trên Linux là ["/bin/sh", "-c"] và Windows là ["cmd", "/S", "/C"].
 
 ### So sánh giữa VM với container
 - Container chạy trực tiếp trên môi trường máy chủ như một tiến trình và chia sẻ phần kernel bên dưới dùng chung với máy chủ chứa nó
@@ -208,3 +352,5 @@ Nhập user/password để đăng nhập
 ##### Bước 5: Đưa image lên Hub (push)
 
 `docker push username/myimage1`
+
+## 3. Thực hành
