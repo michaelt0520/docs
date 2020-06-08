@@ -17,6 +17,7 @@
     vpc
     elb
     httpaccess
+    docker
 
 .. toctree::
     :maxdepth: 3
