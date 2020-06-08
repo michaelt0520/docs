@@ -31,3 +31,95 @@ Docker bao gồm:
 - **Docker Hub (registry)**: Nơi lưu trữ các images
 
 ![](https://camo.githubusercontent.com/948ae5d9498319b4797adc05bf367ddd1646352c/68747470733a2f2f63646e2d696d616765732d312e6d656469756d2e636f6d2f6d61782f3830302f302a584b54436d6d6f75346654366f732d632e)
+
+### 2.1 Docker Client
+> Docker client dùng để tương tác giữa người dùng và Docker Daemon, Daemon sẽ biên dịch và thực thi các câu lệnh đã tương tác qua Docker client.
+
+**1 Chạy một container từ Image**
+
+`docker run -i -t --name web1 ubuntu`
+
+- Khi chạy **docker pull**, mặc định sẽ tìm trên localhost xem có image nào trùng với yêu cầu trong câu lệnh hay không. Nếu image không có sẵn trên localhost, Docker sẽ tìm kiếm và tải về (pull) từ Registry mặc định.
+
+  - **-i**: Vào chế độ tương tác trực tiếp với Container
+  - **-t**: Hiển thị tty
+  - **--name**: Đặt tên cho container. Mặc định, nếu không đặt thì sẽ có tên ngẫu nhiên.
+
+**2 Khởi động container ở chế độ chạy nền**
+
+`docker run -d --name web1 ubuntu`
+
+**3 Liệt kê các container**
+
+`docker ps -a`
+
+  - **-a hoặc --all**: Hiển thị toàn bộ số container có trên hệ thống
+  - **CONTAINER ID**: ID của container
+  - **IMAGE**: Tên của Image khởi tạo
+  - **COMMAND**: Câu lệnh chính khi khởi động của container/image
+  - **CREATE**: Thời gian container được tạo
+  - **STATUS**: Trạng thái của container
+  - **PORT**: Cổng của container được ánh xạ với host (HOST:CONTAINER)
+  - **NAMES**: Tên của container
+
+**4 Liệt kê các image**
+
+`docker images`
+
+**5 Dừng hoạt động của container**
+
+`docker stop web1`
+
+**6 Khởi động của container**
+
+Có thể thêm -i để có thể tương tác trực tiếp với container.
+
+`docker start web1`
+
+**7 Tương tác với Container đang hoạt động**
+
+`docker attach web1`
+
+Hoặc tương tác sử dụng môi trường **/bin/bash**
+
+`docker exec -it web1 /bin/bash`
+
+**8 Xóa container**
+
+Container chỉ bị xóa khi ở trạng thái dừng hoạt động.
+
+`docker rm web1`
+
+### 2.2 Docker Hub (Registry)
+Docker Hub hay thường được gọi là Registry, nơi lưu trữ các image được cộng đồng hoặc các nhà phát triển đóng góp và cung cấp miễn phí, chúng ta có thể tìm các bản images tại đây. Điều này vô cùng tiện lợi, chúng ta chỉ cần pull (tải xuống) các image phục vụ cho nhu cầu ở mọi lúc mọi nơi
+
+#### Các bước đưa (push) lên Hub
+Ở ví dụ này, ta sẽ tạo một image và tạo một vài file trong đó rồi đóng gói lại thành một image.
+
+##### Bước 1: Sử dụng một image có sẵn nhỏ gọn là alpine
+`docker run -it --name myimage1 alpine`
+
+##### Bước 2: Sau khi vào chế độ tương tác của container, tạo vài file bất kỳ và thoát khỏi container
+
+```
+touch a b c d e f
+ls
+exit
+```
+
+##### Bước 3: Lưu lại image tại Host local (commit)
+`docker commit myimage1 username/myimage1`
+
+- **username:** Tên đăng nhập Hub 
+- **myimage1:** Tên image muốn lưu trên Hub. Có thể kèm theo Tag. 
+- VD: `myimage1:latest để đánh dấu image bản mới nhất.`
+
+##### Bước 4: Đăng nhập vào Docker Hub
+
+`docker login`
+
+Nhập user/password để đăng nhập
+
+##### Bước 5: Đưa image lên Hub (push)
+
+`docker push username/myimage1`
