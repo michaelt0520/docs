@@ -5,7 +5,7 @@
    :maxdepth: 2
 
    readme
-   installing
+   capistrano
    configuring
    contributing
 
