@@ -1,11 +1,12 @@
-![](https://lh3.googleusercontent.com/proxy/kNbp0STR_daiJ9QN6J7HPLaCTH94gs0tbrKzHb9mRLu03uOi6k4yQp0dJg1dJihvkge1Q-9RWrPUHvQNDG96JOd72Jg_mivRnreVOT9PeATy_QCp5JRfIN1NBw)
-# Deploy app with Capistrano
+![](https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSkddLpg0l5CqPr0-SHfF1iWTYU56otjuQKd9aM0C4TmsILnolZ&usqp=CAU)
+
+# Capistrano
 [Capistrano](https://capistranorb.com/documentation/getting-started/local-tasks/) | [Github](https://github.com/capistrano/capistrano)
 
 ### Step 1: Add gem && bundle install
 * **Gemfile**
 
-```
+```ruby
 group :development
   gem 'capistrano', '~> 3.6.0', require: false
   gem 'capistrano-rails', '~> 1.1', require: false
@@ -27,7 +28,7 @@ end
 
 `bundle exec cap install STAGES=local,sandbox,qa,production`
 
-#### Step 2: Config Capfile & deploy.rb staging.rb
+### Step 2: Config Capfile & deploy.rb staging.rb
 * **Capfile**
 
 ```
