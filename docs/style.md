@@ -24,8 +24,6 @@ Ruby developer out there.
 By the way, if you're into Rails you might want to check out the complementary
 [Ruby on Rails Style Guide][rails-style-guide].
 
-# The Ruby Style Guide
-
 This Ruby style guide recommends best practices so that real-world Ruby
 programmers can write code that can be maintained by other real-world Ruby
 programmers. A style guide that reflects real-world usage gets used, while a
@@ -4550,12 +4548,12 @@ contributions via [Patreon](https://www.patreon.com/bbatsov).
 
 It's easy, just follow the [contribution guidelines](https://github.com/rubocop-hq/ruby-style-guide/blob/master/CONTRIBUTING.md).
 
-# License
+## License
 
 ![Creative Commons License](http://i.creativecommons.org/l/by/3.0/88x31.png)
 This work is licensed under a [Creative Commons Attribution 3.0 Unported License](http://creativecommons.org/licenses/by/3.0/deed.en_US)
 
-# Spread the Word
+## Spread the Word
 
 A community-driven style guide is of little use to a community that
 doesn't know about its existence. Tweet about the guide, share it with

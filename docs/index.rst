@@ -7,6 +7,7 @@
    capistrano
    mina
    style
+   patterns
 
 .. toctree::
     :maxdepth: 2
