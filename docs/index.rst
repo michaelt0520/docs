@@ -15,6 +15,8 @@
 
     docker
     ansible
+    github
+    circleci
     vagrant
     vpc
     elb
