@@ -1,4 +1,4 @@
-# [Nginx] Protecting directories with Nginx
+# [Nginx] Protecting directories
 
 ## Log into your server via SSH.
 Navigate to your user's directory.

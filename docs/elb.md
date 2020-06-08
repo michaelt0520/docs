@@ -1,4 +1,6 @@
-# [AWS] AWS Application Load Balancer | AWS ALB Demo![](https://camo.githubusercontent.com/37f3107da43842cccc58c480c6386ceb7f24052e/68747470733a2f2f73332d61702d736f757468656173742d312e616d617a6f6e6177732e636f6d2f6b6970616c6f672e636f6d2f6a71616e6e7872686e665f6c6f61642d62616c616e63696e672d747261666669632e676966)
+# [AWS] Application Load Balancer
+
+![](https://camo.githubusercontent.com/37f3107da43842cccc58c480c6386ceb7f24052e/68747470733a2f2f73332d61702d736f757468656173742d312e616d617a6f6e6177732e636f6d2f6b6970616c6f672e636f6d2f6a71616e6e7872686e665f6c6f61642d62616c616e63696e672d747261666669632e676966)
 
 Ưu điểm:
 - Tránh bị sập server, khi 1 2 server trong hệ thống bị sập, Load Balancer sẽ check được server còn đang khỏe mạnh để điều hướng.
