@@ -93,7 +93,6 @@ Container chỉ bị xóa khi ở trạng thái dừng hoạt động.
 ### 2.2 Docker Hub (Registry)
 Docker Hub hay thường được gọi là Registry, nơi lưu trữ các image được cộng đồng hoặc các nhà phát triển đóng góp và cung cấp miễn phí, chúng ta có thể tìm các bản images tại đây. Điều này vô cùng tiện lợi, chúng ta chỉ cần pull (tải xuống) các image phục vụ cho nhu cầu ở mọi lúc mọi nơi
 
-#### Các bước đưa (push) lên Hub
 Ở ví dụ này, ta sẽ tạo một image và tạo một vài file trong đó rồi đóng gói lại thành một image.
 
 ##### Bước 1: Sử dụng một image có sẵn nhỏ gọn là alpine
