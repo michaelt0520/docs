@@ -9,7 +9,8 @@
 - **Task 3**: Tạo và hiểu được mục đích của 1 Internet Geteway là gì?
 - **Task 4**: Tạo và hiểu được mục đích của 1 Route Table là gì?
 
-## Task 1: Tạo 1 VPC
+## Lab1
+### Task 1: Tạo 1 VPC
 - Sau khi log in vào console của aws, tìm tới service VPC
 - Ở VPC dashboard, click Your VPCs
 
@@ -31,7 +32,7 @@
 ![](https://images.viblo.asia/retina/79b41808-374a-4dd0-a877-2c4f47aed1c2.png)
 ![](https://images.viblo.asia/retina/6c0357ac-e8d2-41fb-a4d9-ccbdb1465926.png)
 
-# Task 2. Tạo 1 public subnet
+### Task 2. Tạo 1 public subnet
 
 - Ở VPC dashboard, chọn vào Subnets -> Click Create Subnet
 ![](https://images.viblo.asia/retina/713ef062-59ee-4282-9657-8e7cddbbd3c2.png)
@@ -68,7 +69,7 @@
 
 > **=> Có thể hiểu đơn giản, subnet là các căn phòng nhỏ trong ngôi nhà VPC, mỗi subnet sẽ có 1 mục đích sử dụng riêng khác nhau.**
 
-## Task 3. Tạo 1 Internet Gateway
+### Task 3. Tạo 1 Internet Gateway
 * Tại VPC dashboard, chọn vào Internet Gateways và click Create internet gateway
 ![](https://images.viblo.asia/retina/605409a2-76d3-4fc4-91f5-f4dc03d912d8.png)
 * Đặt name tag cho Internet Gateway rồi click Create
@@ -88,7 +89,7 @@
 > Thao tác này giống như gắn cửa Internet Gateway vào căn nhà VPC vậy.
 
 
-## Task 4. Tạo 1 Route Table
+### Task 4. Tạo 1 Route Table
 
 - Ở dashboard VPC, chọn vào Route Tables và click Create route table
 ![](https://images.viblo.asia/retina/1f7c7bad-beb4-4fb9-98d7-a3ad6a8ffcac.png)
@@ -121,18 +122,19 @@
 
 > Như vậy, đến đây có thể xem như đã hoàn thành cơ bản 4 mục tiêu đã đề ra ban đầu. Trong phần sau mình sẽ tiếp tục tìm hiểu thêm về private subnet và thực hiện launch 1 web app trên VPC này.
 
-# Kết luận
+### Kết luận
 > Có thể suy nghĩ VPC như 1 ngôi nhà riêng mà ở đó chủ nhà có toàn quyền để phân chia, sắp xếp các tài nguyên của mình, cũng như cho phép vị khách nào có quyền ghé thăm và sử dụng các tài nguyên đó. Các subnet thì có thể xem như là các căn phòng, được chia ra để phục vụ các mục đích khác nhau. Để căn nhà có thể liên lạc được với thế giới bên ngoài thì cần có cánh cửa Internet Gateway. Route table như là các ống dẫn nước, cho phép chủ nhà điều khiển dòng chảy lưu thông trong nhà, giữa phòng này với phòng khác, hay giữa căn nhà với bên ngoài.
 
 
-## Tiếp theo của part 1, bài viết này sẽ tiếp tục thực hiện các phần còn lại của bài lab bên dưới
+## Lab2 
+> Tiếp theo của part 1, bài viết này sẽ tiếp tục thực hiện các phần còn lại của bài lab bên dưới
 
 **Review lại Part 1**
 ![](https://images.viblo.asia/retina/bc5191a3-c0af-40f1-83be-ec075e817b8a.png)
 
 Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway và thực tế thì chưa hề có instance nào cả.
 
-## Mục tiêu
+### Mục tiêu
 
 - **Task 5:** Tạo Security Group sử dụng cho Web Server
 - **Task 6:** Tạo 1 EC2 đóng vai trò là 1 Web Server đặt ở Public Subnet
@@ -142,7 +144,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 - **Task 10:** Tạo 1 instance AWS RDS
 - **Task 11:** Kết nối application ở EC2 tới RDS
 
-## Task 5. Tạo Security Group sử dụng cho Web Server
+### Task 5. Tạo Security Group sử dụng cho Web Server
 - Trước hết, đọc qua xem thử cái Security Group (SG) là cái gì.
 
 > Cơ bản thì SG được xem như một "tường lửa ảo" nhằm lọc các truy cập vào các Instance hoặc đi ra từ các Instance. SG sẽ hoạt động dựa vào các rule do admin cài đặt.
@@ -164,7 +166,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 
 >  Đến đây, task tạo Security Group về cơ bản đã hoàn thành. Mình đã tạo được 1 SG control các traffic từ Internet đi vào các Instance nằm trong SG này. Và thông thường thì Instance nằm trong SG này sẽ là 1 con EC2 chạy WebServer để người dùng có thể truy cập vào từ internet.
 
-## Task 6. Tạo 1 EC2 đóng vai trò là 1 Web Server đặt ở Public Subnet
+### Task 6. Tạo 1 EC2 đóng vai trò là 1 Web Server đặt ở Public Subnet
 
 - Ở task này sẽ thực hiện tạo 1 EC2 đảm nhiệm vai trò là 1 Web Server. Web Server cần được truy cập từ Internet nên sẽ đặt tại Public Subnet
 - Chi tiết việc tạo 1 EC2 đã được mình thực hiện ở đây. Tuy nhiên ở task này, mình sẽ sử dụng 1 script có sẵn và được chạy khi EC2 được khởi tạo nhằm cài đặt 1 WebServer lên con EC2 này, đồng thời chạy 1 app có thể được config để trỏ tới mySQL RDS Instance.
@@ -185,7 +187,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 
 > => Đến đây Task 6 đã được hoàn thành. 1 EC2 chạy WebServer đã được đặt trong Public Subnet và nằm trong SG tạo ở task 5.
 
-## Task 7.Tạo Private Subnet sử dụng cho việc thiết lập instance Database
+### Task 7.Tạo Private Subnet sử dụng cho việc thiết lập instance Database
 
 > Để đảm bảo tính bảo mật cao, các ứng dụng thông thường sẽ đặt tầng cơ sở dữ liệu nằm riêng biệt cũng như hạn chế các luồng truy cập vào. Ở task này, mình sẽ thực hiện tạo 1 Private Subnet nằm đặt Instance Database cho ứng dụng. Subnet này sẽ không có quyền đi ra ngoài Internet, cũng như ngược lại, không cho phép các traffic từ ngoài Internet có thể access vào.
 
@@ -198,7 +200,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 - Sau khi tạo xong 2 Private Subnet thì mình có tổng cộng 4 subnet như bên dưới
 ![](https://images.viblo.asia/retina/e822f66e-74b9-441d-ae63-fb918284fb07.png)
 
-## Task 8.Tạo Security Group sử dụng cho Database Server
+### Task 8.Tạo Security Group sử dụng cho Database Server
 - Tương tự như task 5 tạo SG cho WebServer thì task 8 thực hiện tạo 1 SG nhằm sử dụng cho Database Server.
 
 - SG này được config như bên dưới
@@ -210,7 +212,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 > => Save rules và Close để kết thúc Task 8.
 ![](https://images.viblo.asia/retina/0aebc668-beb3-4acb-b90d-7027e84be831.png)
 
-## Task 9.Tạo Database Subnet Group
+### Task 9.Tạo Database Subnet Group
 > Trước hết biết được là muốn tạo 1 Instance RDS thì bắt buộc phải có 1 database subnet group. Ngoài ra điều kiện cần để tạo database subnet group là phải có ít nhất 2 Availability Zones khác nhau. (Đã được chuẩn bị ở task 7)
 
 - Click vào Services, click RDS để bắt đầu tạo DB subnet group
@@ -224,7 +226,7 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 
 > => Task 9 đến đây đã hoàn thành.
 
-## Task 10.Tạo 1 instance AWS RDS
+### Task 10.Tạo 1 instance AWS RDS
 - Click vào Databases ở thanh điều hướng, click vào Create databases để bắt đầu tạo RDS Instance
 ![](https://images.viblo.asia/retina/4abd8a79-3bbb-42ee-be5d-405529a8c4cd.png)
 
@@ -243,14 +245,14 @@ Trong đó chỉ có 2 Public Subnet Group được route tới Internet Getway 
 
 > Task 10 đã hoàn thành. Mình đã deploy thành công MySQL database.
 
-## Task 11.Kết nối application ở EC2 tới RDS
+### Task 11.Kết nối application ở EC2 tới RDS
 
 - Ở task này sẽ thực hiện connect app nằm ở WebServer (đặt ở Public Subnet) vào MySQL DB được đặt ở Private Subnet.
 - Để thực hiện được, cần phải biết được "endpoint" của Instance RDS đã tạo ở Task 10. Để copy endpoint của RDS thì click vào tab Connect&Security. Enpoint sẽ có dạng
 
 ![](https://images.viblo.asia/retina/6953c2d8-fe24-4ab4-90e7-c81cb83af279.png)
 
-# Tổng kết
+## Tổng kết
 ![](https://images.viblo.asia/retina/3fbbfbb8-d2a3-4d78-9f9c-d8cd067167c5.png)
 
 
