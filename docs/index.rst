@@ -16,6 +16,7 @@
     ansible
     vpc
     elb
+    httpaccess
 
 .. toctree::
     :maxdepth: 3
