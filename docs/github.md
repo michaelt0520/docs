@@ -15,8 +15,6 @@
 - Tên chỉ có thể chứa các ký tự chữ và số **([a-z], [A-Z], [0-9])** or **underscores (_)**. Spaces are not allowed.
 - Tên không bắt đầu bằng **GITHUB_ prefix** hoặc **Number**
 
-##### [Tạo encrypted secrets trong repo](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-
 1. On GitHub, navigate to the main page of the repository.
 2. Under your repository name, click Settings.
 ![](https://help.github.com/assets/images/help/repository/repo-actions-settings.png)
@@ -127,3 +125,142 @@ If there are no exact matches, the action searches for partial matches of the re
 - If the job completes successfully, the action creates a new cache with the contents of the path directory.
 
 ## Using databases and service containers
+### [Creating service containers](https://help.github.com/en/actions/configuring-and-managing-workflows/about-service-containers)
+
+You can use the services keyword to create service containers that are part of a job in your workflow. For more information, see [jobs.job_id.services.](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idservices)
+
+This example creates a service called redis in a job called `container-job`. The Docker host in this example is the `node:10.18-jessie` container.
+
+```yml
+name: Redis container example
+on: push
+
+jobs:
+  # Label of the container job
+  container-job:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    # Docker Hub image that `container-job` executes in
+    container: node:10.18-jessie
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        ports: ['6379:6379']
+        options: --entrypoint redis-server
+```
+
+### [Creating Redis service containers](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-redis-service-containers)
+This guide shows you workflow examples that configure a service container using the Docker Hub redis image. The workflow runs a script to create a Redis client and populate the client with data. To test that the workflow creates and populates the Redis client, the script prints the client's data to the console.
+
+**Running jobs in containers**
+
+```yml
+name: Redis container example
+on: push
+
+jobs:
+  # Label of the container job
+  container-job:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    # Docker Hub image that `container-job` executes in
+    container: node:10.18-jessie
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      # Performs a clean installation of all dependencies in the `package.json` file
+      # For more information, see https://docs.npmjs.com/cli/ci.html
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Connect to Redis
+        # Runs a script that creates a Redis client, populates
+        # the client with data, and retrieves data
+        run: node client.js
+        # Environment variable used by the `client.js` script to create a new Redis client.
+        env:
+          # The hostname used to communicate with the Redis service container
+          REDIS_HOST: redis
+          # The default Redis port
+          REDIS_PORT: 6379
+```
+
+### [Creating PostgreSQL service containers](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-postgresql-service-containers)
+
+When you run a job directly on the runner machine, you'll need to map the ports on the service container to ports on the Docker host. You can access service containers from the Docker host using localhost and the Docker host port number.
+
+You can copy this workflow file to the `.github/workflows` directory of your repository and modify it as needed
+
+```yml
+name: PostgreSQL Service Example
+on: push
+
+jobs:
+  # Label of the runner job
+  runner-job:
+    # You must use a Linux environment when using service containers or container jobs
+    runs-on: ubuntu-latest
+
+    # Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      # Performs a clean installation of all dependencies in the `package.json` file
+      # For more information, see https://docs.npmjs.com/cli/ci.html
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Connect to PostgreSQL
+        # Runs a script that creates a PostgreSQL client, populates
+        # the client with data, and retrieves data
+        run: node client.js
+        # Environment variable used by the `client.js` script to create
+        # a new PostgreSQL client.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
+```
+
+## [Migrating from CircleCI to GitHub Actions](https://help.github.com/en/actions/migrating-to-github-actions/migrating-from-circleci-to-github-actions)
