@@ -265,4 +265,6 @@ jobs:
 
 ## [Migrating from CircleCI to GitHub Actions](https://help.github.com/en/actions/migrating-to-github-actions/migrating-from-circleci-to-github-actions)
 
+## [A new tip or trick every day!](https://edwardthomson.com/blog/github_actions_advent_calendar.html)
+
 ## [Reference](https://help.github.com/en/actions/reference)
