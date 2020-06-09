@@ -240,6 +240,101 @@ Gửi tín hiệu cho container tắt đúng cách
 - Chỉ thị Shell cho phép các shell form khác có thể ghi đè shell mặc định.
 - Mặc định trên Linux là ["/bin/sh", "-c"] và Windows là ["cmd", "/S", "/C"].
 
+
+### Docker compose
+Compose là công cụ giúp định nghĩa và khởi chạy multi-container Docker applications.
+
+Khởi động tất cả các dịch vụ chỉ với 1 câu lệnh duy nhất.
+
+Với 3 bước cơ bản như sau:
+
+- Định nghĩa các ứng dụng thông qua Dockerfile
+- Định nghĩa các ứng dụng chạy tách biệt và khởi động cùng nhau trong docker-compose.yml
+- Thực thi câu lệnh docker-compose up -d để hoàn tất
+
+##### Cài đặt
+install using pip
+
+`pip install docker-compose`
+
+Một file docker-compose.xml mẫu:
+
+```yml
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+    - "5000:5000"
+    volumes:
+    - .:/code
+    - logvolume01:/var/log
+    links:
+    - redis
+  redis:
+    image: redis
+volumes:
+  logvolume01: {}
+```
+
+Sử dụng docker-compose để quản lý vòng đời ứng dụng cụ thể xem và quản lý trạng thái của các service (Start, stop, rebuild,...); chuyển log của các ứng dụng đang chạy.
+
+##### Ví dụ
+Chúng ta sẽ tạo ra 2 containers, 1 containers chứa mã nguồn wordpress và 1 containers chưa cơ sở dữ liệu mysql. Bằng cách định nghĩa trong file compose. Chỉ với 1 dòng lệnh khởi tạo, docker sẽ lập tức tạo ra 2 containers và sẵn sàng cho chúng ta dựng lên wordpress, một cách nhanh chóng.
+
+- Đoạn mã compose: Viết theo cú pháp YAML.
+
+```yml
+version: '2'
+
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - ./data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: wordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_PASSWORD: wordpress
+```
+
+- **version**: '2': Chỉ ra phiên bản docker-compose sẽ sử dụng.
+- services:: Trong mục services, chỉ ra những services (containers) mà ta sẽ cài đặt. Ở đây, tạo sẽ tạo ra services tương ứng với 2 containers là db và wordpress.
+Trong services db:
+- **image**: chỉ ra image sẽ được sử dụng để create containers. Ngoài ra, bạn có thể viết dockerfile và khai báo lệnh build để containers sẽ được create từ dockerfile.
+- **volumes**: mount thư mục data trên host (cùng thư mục cha chứa file docker-compose) với thư mục /var/lib/mysql trong container.
+- **restart**: always: Tự động khởi chạy khi container bị shutdown.
+environment: Khai báo các biến môi trường cho container. Cụ thể là thông tin cơ sở dữ liệu.
+Trong services wordpress:
+- **depends_on**: db: Chỉ ra sự phụ thuộc của services wordpress với services db. Tức là services db phải chạy và tạo ra trước, thì services wordpress mới chạy.
+- **ports**: Forwards the exposed port 80 của container sang port 8000 trên host machine.
+- **environment**: Khai báo các biến môi trường. Sau khi tạo ra db ở container trên, thì sẽ lấy thông tin đấy để cung cấp cho container wordpress (chứa source code).
+
+Khởi chạy
+
+`docker-compose up`
+
+
+##### Một vài chú ý
+- **dockerfile** dùng để build các image.
+- **docker-compose** dùng để build và run các container.
+- **docker-compose** viết theo cú pháp YAML, các lệnh khai báo trong docker-compose gần tương tự với thao tác chạy container docker run.
+- **docker-compose** cung chấp chức năng Horizontally scaled, cho phép ta tạo ra nhiều container giống nhau một cách nhanh chóng. Bằng cách sử dụng lệnh
+
+
 ### So sánh giữa VM với container
 - Container chạy trực tiếp trên môi trường máy chủ như một tiến trình và chia sẻ phần kernel bên dưới dùng chung với máy chủ chứa nó
 - VM tạo ra một môi trường giả lập hoàn toàn tách biệt như 1 máy hoàn chỉnh thông qua việc phân bổ tài nguyên của máy chủ, do đó sẽ tốn tài nguyên nhiều hơn cho hệ điều hành của máy ảo
