@@ -12,6 +12,9 @@
    - **Khả năng mở rộng**: Dễ dàng tăng và phân tán tự động các container
    - **Phân tầng dịch vụ**: Mỗi dịch vụ khi deploy sẽ được phân tầng, nằm trên các dịch vụ đang có sẵn. Như vậy sẽ không làm ảnh hưởng tới dịch vụ đang chạy.
 
+### Life circle
+![](https://miro.medium.com/max/2612/1*UbAOuq0K1oXxPOgigV9L9A.png)
+
 ### Docker container
 Là 1 máy ảo được cấu thành từ 1 image. Có thể run, remove thông qua remote client
 ### Docker Image
@@ -101,9 +104,6 @@ Cấu hình docker để pull, push image từ registry vừa tạo: vi /etc/def
 `service docker restart`
 
 Các thao tác pull và push image tương tự ở như là pull, push ở docker hub.
-
-### Life circle
-![](https://miro.medium.com/max/2612/1*UbAOuq0K1oXxPOgigV9L9A.png)
 
 ### Docker engine
 Quản lý việc tạo image. chạy container, dùng image có sẵn hay tải về, Kết nối container, thêm sữa xoá image và container
