@@ -21,6 +21,7 @@
     vpc
     elb
     httpaccess
+    ssl
 
 .. toctree::
     :maxdepth: 3

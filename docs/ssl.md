@@ -1,4 +1,4 @@
-# [HTTPS SSL] Cài đặt SSL miễn phí với Let's Encrypt
+# [SSL] Let's Encrypt
 
 ## 1 Cài đặt Let’s Encrypt
 - Chúng ta sẽ clone mã nguồn của Let’s Encrypt về thư mục /opt/letsencrypt. Bước này thực hiện giống nhau trên CentOS 6 và 7.
@@ -159,14 +159,13 @@ crontab trên sẽ tự động chạy lệnh gia hạn Let’s Encrypt vào lú
 
 Vậy là xong, bạn có thể yên tâm sử dụng Let’s Encrypt rồi đấy.
 
-### NOTE
-renew ssl punch
+#### NOTE
+renew ssl
 
 ```
 sudo ls -la /etc/letsencrypt/live/
-- punch.ooo
-- punch.ooo-0001
-sudo certbot renew --cert-name punch.ooo-0001
+- domain
+sudo certbot renew --cert-name domain
 
 certbot-auto renew
 ```
@@ -185,7 +184,7 @@ Step 2. Run below to obtain your certificates:
 $ sudo /opt/letsencrypt/certbot-auto certonly --webroot -w 
 ```
 
-### Refs 
+#### Refs 
 - 1 https://hocvps.com/cai-dat-lets-encrypt/
 - 2 https://dominhhai.github.io/vi/2017/02/free-ssl-with-let-encrypt/
 - 3 https://github.com/certbot/certbot/issues/2544 
