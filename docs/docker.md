@@ -16,6 +16,92 @@
 Là 1 máy ảo được cấu thành từ 1 image. Có thể run, remove thông qua remote client
 ### Docker Image
 Là 1 template tạo ra các container, Nó có thể gói các cài đặt môi trường, Thành 1 cụm duy nhất. đó là image
+
+#### Một số chú ý
+Có 02 cách để tạo ra các các mirror container
+
+- **Cách 1:** Tạo một container, chạy các câu lệnh cần thiết và sử dụng lệnh docker commit để tạo ra image mới. Cách này thường không được khuyến cáo.
+- **Cách 2:** Viết một Dockerfile và thực thi nó để tạo ra một images. Thường mọi người dùng cách này để tạo ra image.
+
+Các **image** là dạng **file-chỉ-đọc (read only file).** Khi tạo một container mới, trong mỗi container sẽ tạo thêm một lớp có-thể-ghi được gọi là container-layer. Các thay đổi trên container như thêm, sửa, xóa file... sẽ được ghi trên lớp này. Do vậy, từ một image ban đầu, ta có thể tạo ra nhiều máy con mà chỉ tốn rất ít dung lượng ổ đĩa.
+
+Quy tắt đặt tên images: **[REPOSITORY[:TAG]]**
+
+#### Một số lệnh làm việc với images
+##### Kiểm tra hoạt động của docker
+Sử dụng lệnh `docker run hello-world` để kiểm tra hoạt động của docker trên host
+
+```
+sh root@u14-vagrant:~# docker run hello-world
+Hello from Docker! This message shows that your installation appears to be working correctly. ....
+
+```
+
+##### Tìm kiếm immages từ Docker HUB
+Sử dụng lệnh `docker search` để tìm kiếm các images trên Docker HUB
+
+`docker search ubuntu`
+
+Hoặc tìm chính xác phiên bản
+
+`docker search ubuntu:14.04`
+
+##### Tải images từ Docker Hub về host
+Ví dụ tải images có tên là `ubuntu` về host
+
+`docker pull ubuntu`
+
+Để tạo một container từ `image ubuntu`, sử dụng lệnh `docker run ubuntu`
+
+##### Kiểm tra các images tồn tại trên host.
+Sử dụng lệnh `docker images` để kiểm tra danh sách các images
+
+##### Tạo container từ images
+Trong các tài liệu thường hay sử dụng lệnh docker run hello-world để chạy một container, sau khi chạy xong container này nó sẽ thoát. Tuy nhiên, đa số chúng ta lại cần tương tác nhiều hơn nữa với container (thao tác nhiều hơn)
+
+Để chạy container và tương tác với container ta sử dụng tùy chọn -it trong lệnh docker run. Ví dụ: `docker run -it ubuntu`
+
+#### Push - Pull images using Docker Hub.
+Để push 1 image vừa tạo lên hub để chia sẻ với mọi người, thì ta cần tạo 1 tài khoản docker hub và login vào bằng câu lệnh
+
+```
+docker login
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username:cosy294
+Password:
+Login Succeeded
+```
+
+Sau khi login thành công ta tiến hành push image lên hub
+
+```
+$ docker push cosy294/test
+The push refers to a repository [cosy294/test]
+255c5f0caf9a: Image successfully pushed
+```
+
+Trong đó: **cosy294/test** là tên images. - Lưu ý: Nếu bạn muốn push images lên docker hub thì tên images phải có dạng: **cosy294/test**, trong đó **cosy294** là id dockerhub và **test** là tên repo
+
+Để Pull một image từ Docker Hub: `docker pull {image_name}`
+
+#### Create and use Docker Registry: Local Images Repo.
+Tạo môi trường chứa image. Docker đã hỗ trợ chúng ta cài đặt các môi trường này duy nhất trong 1 container. Rất là đơn giản, chúng ta chạy lệnh sau.
+
+`docker run -d -p 5000:5000 --name registry registry:2`
+
+Khi đó, port 5000 sẽ được listen. Mọi thao tác pull, push image sẽ được thực hiện trên port này.
+
+Cấu hình docker để pull, push image từ registry vừa tạo: vi /etc/default/docker
+
+`DOCKER_OPTS="--insecure-registry 172.16.69.239:5000"`
+
+- Trong đó, 172.16.69.239 là địa chỉ ip máy chứa registry tạo ở trên.
+- Sau khi cấu hình xong, ta khởi động lại docker
+
+`service docker restart`
+
+Các thao tác pull và push image tương tự ở như là pull, push ở docker hub.
+
 ### Life circle
 ![](https://miro.medium.com/max/2612/1*UbAOuq0K1oXxPOgigV9L9A.png)
 
