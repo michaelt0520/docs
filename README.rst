@@ -1,5 +1,5 @@
 **************************
-Read the Docs Sphinx Theme
+Documents
 **************************
 
 .. image:: https://img.shields.io/pypi/v/sphinx_rtd_theme.svg
