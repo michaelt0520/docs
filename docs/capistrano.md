@@ -8,10 +8,10 @@
 
 ```ruby
 group :development
-  gem 'capistrano', '~> 3.6.0', require: false
-  gem 'capistrano-rails', '~> 1.1', require: false
+  gem 'capistrano', '~> 3.14', require: false
+  gem 'capistrano-rails', '~> 1.6', require: false
   gem 'capistrano-rbenv'
-  gem 'capistrano-bundler', '~> 1.2', require: false
+  gem 'capistrano-bundler', '~> 2.0', require: false
   gem 'capistrano3-puma', require: false
   gem 'capistrano-sidekiq', require: false
   gem 'capistrano-yarn', require: false
@@ -32,28 +32,35 @@ end
 * **Capfile**
 
 ```ruby
+# Load DSL and set up stages
 require 'capistrano/setup'
-require 'capistrano/deploy'
 
+# Include default deployment tasks
+require 'capistrano/deploy'
 require 'capistrano/rbenv'
 require 'capistrano/bundler'
-# require 'capistrano/rails/assets'
-require 'capistrano/rails/migrations'
-require 'capistrano/puma'
 require 'capistrano/sidekiq'
+install_plugin Capistrano::Sidekiq
+install_plugin Capistrano::Sidekiq::Upstart
+require 'capistrano/rails/migrations'
+require 'capistrano/rails/assets'
+require 'capistrano/puma'
+install_plugin Capistrano::Puma
+install_plugin Capistrano::Puma::Daemon
 require 'seed-fu/capistrano3'
+require 'capistrano/scm/git'
+install_plugin Capistrano::SCM::Git
 
+# Load custom tasks from `lib/capistrano/tasks` if you have any defined
 Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
+
 ```
 
 * **Deploy.rb**
 
 ```ruby
 # config valid only for current version of Capistrano
-lock '3.6.1'
-
-# Default value for :scm is :git
-set :scm, :git
+lock '~> 3.14.1'
 
 # Default value for :format is :airbrussh.
 set :format, :airbrussh
@@ -74,7 +81,7 @@ set :linked_dirs, ['log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'bundle', 'pub
 
 # Default value for keep_releases is 5
 set :keep_releases, 3
-set :local_user, 'congnt'
+set :local_user, 'wkx2'
 set :use_sudo, false
 
 namespace :yarn do
@@ -105,6 +112,7 @@ namespace :deploy do
   desc 'Upload yml file.'
   task :upload_yml do
     on roles(:app) do
+      execute "mkdir -p #{shared_path}/public"
       execute "mkdir -p #{shared_path}/config"
       execute "mkdir -p #{shared_path}/config/puma"
       upload!('package.json', "#{shared_path}/package.json")
@@ -112,6 +120,21 @@ namespace :deploy do
       upload!(".env.#{fetch(:stage)}", "#{shared_path}/.env.#{fetch(:stage)}")
       upload!('config/database.yml', "#{shared_path}/config/database.yml")
       upload!('config/master.key', "#{shared_path}/config/master.key")
+    end
+  end
+end
+
+namespace :maintenance do
+  task :on do
+    on roles(:app) do
+      invoke 'puma:stop'
+      execute "cd #{shared_path}/public && touch maintenance"
+    end
+  end
+
+  task :off do
+    on roles(:app) do
+      execute "cd #{shared_path}/public && rm -rf maintenance"
     end
   end
 end
@@ -146,8 +169,15 @@ task :log do
   end
 end
 
-before('deploy', 'puma:stop')
-after('deploy:updated', 'assets:precompile')
+task :update_crontab do
+  on roles(:app) do
+    execute "cd #{current_path} && whenever --update-crontab --set environment=#{fetch(:stage)}"
+  end
+end
+
+before('deploy', 'maintenance:on')
+
+after('deploy:finished', 'maintenance:off')
 
 ```
 
@@ -166,29 +196,23 @@ ssh -i path/to/your-instance.pem ubuntu@your-public-dns
 * Create a new user & set password in ubuntu server
 
 ```
-sudo useradd -d /home/deploy -m deploy
-sudo passwd deploy
+sudo useradd -d /home/username -m username
+sudo passwd username
 ```
 
 ### Step 5: Run sudo visudo command in server
 `sudo visudo`
 
-* chỉnh phân quyền cho user deploy **deploy ALL=(ALL:ALL)ALL**
+* chỉnh phân quyền cho user username **username ALL=(ALL:ALL)ALL**
 
 ### Step 6: Login as deploy user and create public key
 
 ```
-sudo su -deploy
+sudo su - username
 ssh-keygen
 ```
 
-### Step 7: Copy id_rsa.pub and and copy to github ssh
-* Trên server trong thư mục **~/.ssh**
-* copy tới github để có quyền
-
-`cat id_rsa.pu`
-
-### Step 8: Copy your local machine public key and paste in server authorized_keys
+### Step 7: Copy your local machine public key and paste in server authorized_keys
 * Trên máy local
 
 ```
@@ -205,77 +229,196 @@ cd ~/.ssh
 nano authorized_keys
 ```
 
-### Step 9: Nginx in server
+```
+sudo chmod 700 .ssh
+sudo chmod 600 .ssh/authorized_keys
+restorecon -r -vv .ssh/authorized_keys
+```
+
+* Trên máy local
 
 ```
+ssh-keygen -t rsa -C key_rsa_name
+cd ~/.ssh
+ssh-add ~/.ssh/key_rsa_name
+cat key_rsa_name.pub
+```
+
+* Copy key_rsa_name.pub bỏ trong **authorized_keys** trong **~/.ssh** trên server
+
+```
+cd ~/.ssh
+nano authorized_keys
+```
+
+* Copy key_rsa_name.pub bỏ trong repo setting deploy keys
+
+### Step 8: Install git
+```
+sudo apt-get update
 sudo apt-get install git
+```
+
+### Step 9: Install node (version 12) & yarn
+```
+sudo apt-get install curl autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev
+
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+sudo apt-get install nodejs -y
+
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt-get install yarn
+
+exec $SHELL
+```
+
+### Step 10: Install minimagick
+```
+sudo apt-get install ruby-mini-magick
+```
+
+### Step 11: Install letsencrypt
+```
+sudo git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+sudo certbot --nginx -d domain.name
+```
+
+### Step 12: Setup htpasswd
+```
+sudo apt install apache2-utils
+
+sudo htpasswd -c /password/.htpasswd username
+```
+
+### Step 13: Nginx in server
+
+```
 sudo apt-get install nginx
 ```
 
 * Edit your nginx config file
 
 ```
-sudo rm /etc/nginx/sites_enabled/default
-sudo nano /etc/nginx/conf.d/default.conf
+sudo rm /etc/nginx/sites-enabled/default
+sudo nano /etc/nginx/conf.d/cms.conf
 ```
 
 **Nginx file**
 
 ```bash
-upstream app {
-   server unix:/home/deploy/nguoimexe/shared/tmp/sockets/puma.sock fail_timeout=0;
+upstream wkx2_puma {
+  server unix:/data/staging/wakuwaku-cms/shared/tmp/sockets/puma.sock fail_timeout=0;
 }
 
 server {
-  listen     80;
-  listen     443;
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2 ipv6only=on;
+  ssl_certificate /etc/letsencrypt/live/admin.stg-wakuwaku.net/fullchain.pem; # managed by Certbot
+  ssl_certificate_key /etc/letsencrypt/live/admin.stg-wakuwaku.net/privkey.pem; # managed by Certbot
 
-  ssl        on;
-  ssl_certificate /etc/nginx/ssl/cert.pem;
-  ssl_certificate_key /etc/nginx/ssl/key.pem;
+  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
-  server_name www.nguoimexe.com;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-  root /home/deploy/nguoimexe/current/public;
+  server_name admin.stg-wakuwaku.net editor.stg-wakuwaku.net translator.stg-wakuwaku.net;
 
-  try_files $uri/index.html $uri @app;
+  root /data/staging/wakuwaku-cms/current/public;
 
-  location ~* \.(js|css|png|jpg|jpeg|gif|ico|wmv|3gp|avi|mpg|mpeg|mp4|flv|mp3|mid|wml|swf|pdf|doc|docx|ppt|pptx|zip)$ {
-    expires 5d;
-    access_log off;
-  }
+  charset utf-8;
 
-  location / {
-    proxy_set_header X-Forwarded-Proto $scheme;
+  # Include the basic h5bp config set
+  # include h5bp/basic.conf;
+
+  try_files $uri/index.html $uri @wkx2_puma;
+
+  error_page 503 /503.html;
+
+  location @wkx2_puma {
+    if (-f /data/staging/wakuwaku-cms/shared/public/maintenance) {
+      return 503;
+    }
+
+    auth_basic "Restricted";
+    auth_basic_user_file /password/.htpasswd;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header Host $host;
     proxy_redirect off;
-    proxy_http_version 1.1;
-    proxy_set_header Connection '';
-    proxy_pass http://app;
+    proxy_pass http://wkx2_puma;
   }
 
- location /cable {
-   proxy_pass http://app;
-   proxy_http_version 1.1;
-   proxy_set_header Upgrade $http_upgrade;
-   proxy_set_header Connection "Upgrade";
+  location /cable {
+    proxy_pass http://wkx2_puma;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
 
-   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-   proxy_set_header Host $http_host;
-   proxy_set_header X-Real-IP $remote_addr;
-   proxy_set_header X-Forwarded-Proto https;
-   proxy_redirect off;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_redirect off;
  }
 
+  location ~ \.(?:json|ico|jpg|css|jpeg|png|js|swf|woff|otf|eot|svg|ttf|html|gif)$ {
+    access_log  off;
+    log_not_found off;
+    add_header  Pragma "public";
+    add_header  Cache-Control "public";
+    expires     365d;
+  }
 
-  client_max_body_size 4G;
+  if ($scheme = http) {
+    return 301 https://$server_name$request_uri;
+  }
+
+  location = /ads.txt {
+    return 403;
+  }
+
+  client_max_body_size 100M;
   keepalive_timeout 10;
 }
 ```
 
-### Step 10: Postgres Install
+```
+sudo nano /etc/nginx/conf.d/assets.conf
+```
+
+**Nginx file**
+```bash
+server {
+  listen 443 ssl;
+
+  server_name assets.stg-wakuwaku.net;
+  root /data/staging/wakuwaku-cms/current/public;
+
+  error_page 503 /503.html;
+  ssl_certificate /etc/letsencrypt/live/admin.stg-wakuwaku.net/fullchain.pem; # managed by Certbot
+  ssl_certificate_key /etc/letsencrypt/live/admin.stg-wakuwaku.net/privkey.pem; # managed by Certbot
+  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+  location /packs/ {
+    root /data/staging/wakuwaku-cms/current/public;
+    expires max;
+    break;
+  }
+
+  location ~ \.(?:json|ico|jpg|css|jpeg|png|js|swf|woff|otf|eot|svg|ttf|html|gif)$ {
+     access_log  off;
+     log_not_found off;
+     add_header  Pragma "public";
+     add_header  Cache-Control "public";
+     expires     365d;
+  }
+
+}
+```
+
+### Step 14: Postgres Install
 * Install postgres
 
 `sudo apt-get install postgresql postgresql-contrib libpq-dev`
@@ -295,14 +438,27 @@ sudo -u postgres psql
 
 `sudo -u postgres createdb -O "user-name-data" "database-name"`
 
-### Step 11: Install rbenv && ruby
-### Step 12: Create project folder, database.yml, application.yml, master.key
+### Step 15: Install rbenv && ruby
+```
+curl -sL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-installer | bash -
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+exec $SHELL
+rbenv install 2.7.2
+rbenv global 2.7.2
+```
+
+### Step 16: Setup timezone
+```
+sudo timedatectl set-timezone Asia/Ho_Chi_Minh
+```
+
+### Step 17: Create project folder, database.yml, application.yml, master.key
 
 ```
 pwd
-mkdir project_app
-ls
-mkdir - p project_app/shared/config
+mkdir /data/project_app
+mkdir - p /home/username/project_app/shared/config
 ```
 
 * Database
@@ -312,15 +468,22 @@ mkdir - p project_app/shared/config
 **database.yml**
 
 ```ruby
-
-production:
+default: &default
   adapter: postgresql
   encoding: unicode
-  database: database_production
-  username: your-name
-  password: your-password
-  host: localhost
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+production:
+  <<: *default
+  database: <%= ENV['DATABASE_NAME'] %>
+  username: <%= ENV['DATABASE_USER'] %>
+  password: <%= ENV['DATABASE_PASSWORD'] %>
+  host: <%= ENV['DATABASE_HOST'] %>
   port: 5432
+  connect_timeout: 1
+  checkout_timeout: 5
+  variables:
+    statement_timeout: 5000
 ```
 
 **application.yml**
